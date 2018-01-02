@@ -60,13 +60,9 @@ void loop() {
     Serial.print(stickX);
     Serial.print('-');
     Serial.println(stickY);
-    Serial.print(rate1);
+    Serial.print(vecX);
     Serial.print('/');
-    Serial.print(rate2);
-    Serial.print('_');
-    Serial.print(rateMod1);
-    Serial.print('_');
-    Serial.println(rateMod2);
+    Serial.print(vecY);
 }
 
 int normalize(int stick) {
