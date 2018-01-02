@@ -1,10 +1,8 @@
 #include <AFMotor.h>
-int stickX = 0; // motor 1 joystick
-int stickY = 0; // motor 2 joystick
-int rate1 = 0; // motor 1 speed
-int rate2 = 0; // motor 2 speed
-int rateMod1 = 0; // motor 1 speed modifier
-int rateMod2 = 0; // motor 2 speed modifier
+int stickX; // motor 1 joystick
+int stickY; // motor 2 joystick
+int vecX; // normalized motor rate
+int vecY; // normalized motor rate
 
 /*
 The null zone gives a little more zero for stop.
