@@ -17,7 +17,7 @@ AF_DCMotor motor1(1);
 AF_DCMotor motor2(2);
 
 /*
-setup() runs when the Arduino turns on. We put anstickY code needed to
+setup() runs when the Arduino turns on. We put any code needed to
 initialize the program here.
 */
 void setup() {
@@ -66,12 +66,31 @@ void loop() {
 }
 
 int normalize(int stick) {
+    /*
+    The stick has ranges 0-1023
+    
+       1023
+        |
+    0-------1023
+        |
+        0
+
+    But we need to consider all back as full power, and all left/right as full power. So like:
+
+         255
+          |
+    255---0---255
+          |
+         255
+
+    */
+
     if (stick >= nullMin && stick <= nullMax) {
         return 0;
-    } else if (stick < 511) {
+    } else if (stick < 512) {
         return map(stick, 0, 511, 0, 255);
     } else {
-        return map(stick, 512, 254, 0, 255);
+        return map(stick, 512, 1023, 0, 255);
     }
 }
 
