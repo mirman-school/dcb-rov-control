@@ -127,14 +127,14 @@ void turn() {
     // Turning starboard
     if (stickX >= 128) {
         motor1.setSpeed(vecY);
-        motor2.setSpeed(vecX);
+        motor2.setSpeed(vecY - vecX);
         motor1.run(FORWARD);
-        motor2.run(BACKWARD);
+        motor2.run(FORWARD);
     // Turning port
     } else {
-        motor1.setSpeed(vecX);
+        motor1.setSpeed(vecY - vecX);
         motor2.setSpeed(vecY);
-        motor1.run(BACKWARD);
+        motor1.run(FORWARD);
         motor2.run(FORWARD);
     }
 }
