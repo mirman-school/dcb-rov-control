@@ -123,18 +123,30 @@ void turn() {
     Basically, a turn is a reversal of one engine, and then turning that engine at X rate
     */
 
-
-    // Turning starboard
-    if (stickX >= 128) {
-        motor1.setSpeed(vecY);
-        motor2.setSpeed(vecY - vecX);
-        motor1.run(FORWARD);
-        motor2.run(FORWARD);
-    // Turning port
+    // Turning with no forward thrust
+    if (vecY == 0) {
+        motor1.setSpeed(vecX);
+        motor2.setSpeed(vecX);
+        if (stickX > 511) {
+            motor1.run(FORWARD);
+            motor2.run(REVERSE);
+        } else {
+            motor1.run(REVERSE);
+            motor2.run(FORWARD);
+        }
     } else {
-        motor1.setSpeed(vecY - vecX);
-        motor2.setSpeed(vecY);
-        motor1.run(FORWARD);
-        motor2.run(FORWARD);
+        // Turning starboard with Y power
+        if (stickX > 511) {
+            motor1.setSpeed(vecY);
+            motor2.setSpeed(vecY - vecX);
+            motor1.run(FORWARD);
+            motor2.run(FORWARD);
+        // Turning port with Y power
+        } else {
+            motor1.setSpeed(vecY - vecX);
+            motor2.setSpeed(vecY);
+            motor1.run(FORWARD);
+            motor2.run(FORWARD);
+        }
     }
 }
