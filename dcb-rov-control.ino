@@ -10,22 +10,22 @@ static const int NULL_MAX = 516; // High end stick null zone
 
 // DIRECTION CONSTANTS
 // We do this so we don't risk a typo later
-static const String AHEAD = "AHEAD";
-static const String BACK = "BACK";
-static const String PORT = "PORT";
-static const String STARBOARD = "STARBOARD";
-static const String AHEAD_PORT = "AHEAD_PORT";
-static const String BACK_PORT = "BACK_PORT";
-static const String AHEAD_STARBOARD = "AHEAD_STARBOARD";
-static const String BACK_STARBOARD = "BACK_STARBOARD";
-static const String STOP = "STOP";
+static const int AHEAD = 1;
+static const int BACK = 2;
+static const int PORT = 3; 
+static const int STARBOARD = 4; 
+static const int AHEAD_PORT = 5; 
+static const int BACK_PORT = 6; 
+static const int AHEAD_STARBOARD = 7; 
+static const int BACK_STARBOARD = 8; 
+static const int STOP = 9; 
 
 // VARIABLES
 int stickX; // joystick x val
 int stickY; // joystick y val
 int vecX; // translated x val to motors
 int vecY; // translated y val to motors
-String dir; // direction command
+int dir; // direction command
 
 // MOTOR DEFINITIONS
 AF_DCMotor motor1(1); 
@@ -107,7 +107,7 @@ int nullify(int stickVal) {
     }
 }
 
-String resolveDirection(int x, y) {
+int resolveDirection(int x, int y) {
     
     // STOP
     if (x == JOY_CENTER && y == JOY_CENTER) {
@@ -157,6 +157,15 @@ String resolveDirection(int x, y) {
     return STOP;
 }
 
+void stop() {
+    vecX = 0;
+    vecY = 0;
+    motor1.setSpeed(vecY);
+    motor2.setSpeed(vecY);
+    motor1.run(FORWARD);
+    motor2.run(FORWARD);
+}
+
 void ahead() {
     vecX = 0;
     vecY = mapStickVal(stickY);
@@ -168,7 +177,7 @@ void ahead() {
 
 void back() {
     vecX = 0;
-    vecY = mapStickVal(JOY_MAX - stickY)
+    vecY = mapStickVal(JOY_MAX - stickY);
     motor1.setSpeed(vecY);
     motor2.setSpeed(vecY);
     motor1.run(BACKWARD);
@@ -218,8 +227,7 @@ void backPort() {
     motor1.setSpeed(vecY - vecX);
     motor2.setSpeed(vecX);
     motor1.run(BACKWARD);
-    motor2.run(BACKWARD)
-
+    motor2.run(BACKWARD);
 }
 
 void backStarboard() {
@@ -228,7 +236,7 @@ void backStarboard() {
     motor1.setSpeed(vecX);
     motor2.setSpeed(vecY - vecX);
     motor1.run(BACKWARD);
-    motor2.run(BACKWARD)
+    motor2.run(BACKWARD);
 }
 
 int mapStickVal(int stickVal) {
