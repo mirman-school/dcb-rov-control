@@ -5,8 +5,7 @@ static const int JOY_MIN = 0; // Min val from joystick read
 static const int JOY_MAX = 0; // Max val from joystick read
 static const int MOTOR_MIN = 0; // Min val to motor control
 static const int MOTOR_MAX = 255; // Max val to motor control
-static const int NULL_MIN = 506; // Low end stick null zone
-static const int NULL_MAX = 516; // High end stick null zone
+
 
 // DIRECTION CONSTANTS
 // We do this so we don't risk a typo later
@@ -26,6 +25,8 @@ int stickY; // joystick y val
 int vecX; // translated x val to motors
 int vecY; // translated y val to motors
 int dir; // direction command
+int nullX; // Low end stick null zone
+int nullY; // High end stick null zone
 
 // MOTOR DEFINITIONS
 AF_DCMotor motor1(1); 
@@ -39,6 +40,8 @@ void setup() {
     // Set up joystick pins for input
     pinMode(A0, INPUT);
     pinMode(A1, INPUT);
+    nullX = analogRead(A0);
+    nullY = analogRead(A1);
     
     // Begin serial printing for the run
     Serial.begin(9600);
@@ -103,37 +106,30 @@ void loop() {
 
 }
 
-// We have this, but it isn't useful
-int nullify(int stickVal) {
-    if (stickVal >= NULL_MIN && stickVal <= NULL_MAX) {
-        return JOY_CENTER; 
-    }
-}
-
 int resolveDirection(int x, int y) {
     
     // STOP
-    if (x == JOY_CENTER && y == JOY_CENTER) {
+    if (x == nullX && y == nullY) {
         return STOP;
     }
 
     // AHEAD
-    if (x == JOY_CENTER && y > JOY_CENTER) {
+    if (x == nullX && y > nullY) {
         return AHEAD;
     }
 
     // BACK
-    if (x == JOY_CENTER && y < JOY_CENTER) {
+    if (x == nullX && y < nullY) {
         return BACK;
     }
 
     // PORT
-    if (x < JOY_CENTER && y == JOY_CENTER) {
+    if (x < nullX && y == nullY) {
         return PORT;
     }
 
     // STARBOARD
-    if (x > JOY_CENTER && y == JOY_CENTER) {
+    if (x > nullX && y == nullY) {
         return STARBOARD;
     }
 
@@ -143,17 +139,17 @@ int resolveDirection(int x, int y) {
     }
 
     // BACK_PORT
-    if (x < JOY_CENTER && y < JOY_CENTER) {
+    if (x < nullX && y < nullY) {
         return BACK_PORT; 
     }
 
     // AHEAD_STARBOARD
-    if (x > JOY_CENTER && y > JOY_CENTER) {
+    if (x > nullX && y > nullY) {
         return AHEAD_STARBOARD; 
     }
 
     // BACK_STARBOARD
-    if (x > JOY_CENTER && y < JOY_CENTER) {
+    if (x > nullX && y < nullY) {
         return BACK_STARBOARD; 
     }
 
