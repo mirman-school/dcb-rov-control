@@ -51,8 +51,8 @@ loop() runs forever once the Arduino has started. Consider this the
 void loop() {
   
     // Get stickX/stickY joystick values
-    stickX = nullify(analogRead(A0));
-    stickY = nullify(analogRead(A1));
+    stickX = analogRead(A0);
+    stickY = analogRead(A1);
     
     // Turn those into a direction
     dir = resolveDirection(stickX, stickY);
@@ -64,6 +64,8 @@ void loop() {
     Serial.print(stickX);
     Serial.print("/");
     Serial.print(stickY);
+    Serial.print("-");
+    Serial.print(dir);
     Serial.print("\n");
 
     // Control structure for directions
@@ -101,6 +103,7 @@ void loop() {
 
 }
 
+// We have this, but it isn't useful
 int nullify(int stickVal) {
     if (stickVal >= NULL_MIN && stickVal <= NULL_MAX) {
         return JOY_CENTER; 
