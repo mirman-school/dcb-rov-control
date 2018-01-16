@@ -53,8 +53,20 @@ void loop() {
     // Get stickX/stickY joystick values
     stickX = nullify(analogRead(A0));
     stickY = nullify(analogRead(A1));
+    
+    // Turn those into a direction
     dir = resolveDirection(stickX, stickY);
 
+
+    // Serial print the results;
+    Serial.print(dir);
+    Serial.print("::");
+    Serial.print(stickX);
+    Serial.print("/");
+    Serial.print(stickY);
+    Serial.print("\n");
+
+    // Control structure for directions
     switch (dir) {
         case STOP:
             stop();
@@ -147,7 +159,7 @@ String resolveDirection(int x, y) {
 
 void ahead() {
     vecX = 0;
-    vecY = map(stickY, JOY_MIN, JOY_MAX, MOTOR_MIN, MOTOR_MAX);
+    vecY = mapStickVal(stickY);
     motor1.setSpeed(vecY);
     motor2.setSpeed(vecY);
     motor1.run(FORWARD);
