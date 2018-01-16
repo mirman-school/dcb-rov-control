@@ -156,7 +156,7 @@ void ahead() {
 
 void back() {
     vecX = 0;
-    vecY = map(stickY, JOY_MIN, JOY_MAX, MOTOR_MIN, MOTOR_MAX);
+    vecY = mapStickVal(JOY_MAX - stickY)
     motor1.setSpeed(vecY);
     motor2.setSpeed(vecY);
     motor1.run(BACKWARD);
@@ -164,7 +164,7 @@ void back() {
 }
 
 void port() {
-    vecX = map(stickX, JOY_MIN, JOY_MAX, MOTOR_MIN, MOTOR_MAX);
+    vecX = mapStickVal(JOY_MAX - stickX);
     vecY = 0;
     motor1.setSpeed(vecY);
     motor2.setSpeed(vecX);
@@ -173,21 +173,52 @@ void port() {
 }
 
 void starboard() {
-
+    vecX = mapStickVal(stickX);
+    vecY = 0;
+    motor1.setSpeed(vecX);
+    motor2.setSpeed(vecY);
+    motor1.run(FORWARD);
+    motor2.run(FORWARD);
 }
 
 void aheadPort() {
-
+    vecX = mapStickVal(JOY_MAX - stickX);
+    vecY = mapStickVal(stickY);
+    motor1.setSpeed(vecY - vecX);
+    motor1.setSpeed(vecX);
+    motor1.run(FORWARD);
+    motor1.run(FORWARD);
 }
 
 void aheadStarboard() {
+    vecX = mapStickVal(stickX);
+    vecY = mapStickVal(stickY);
+    motor1.setSpeed(vecX);
+    motor2.setSpeed(vecY - vecX);
+    motor1.run(FORWARD);
+    motor2.run(FORWARD);
 
 }
 
 void backPort() {
+    vecX = mapStickVal(JOY_MAX - stickX);
+    vecY = mapStickVal(JOY_MAX - stickY);
+    motor1.setSpeed(vecY - vecX);
+    motor2.setSpeed(vecX);
+    motor1.run(BACKWARD);
+    motor2.run(BACKWARD)
 
 }
 
 void backStarboard() {
+    vecX = mapStickVal(stickX);
+    vecY = mapStickVal(JOY_MAX - stickY);
+    motor1.setSpeed(vecX);
+    motor2.setSpeed(vecY - vecX);
+    motor1.run(BACKWARD);
+    motor2.run(BACKWARD)
+}
 
+int mapStickVal(int stickVal) {
+    return map(stickVal, JOY_MIN, JOY_MAX, MOTOR_MIN, MOTOR_MAX);
 }
