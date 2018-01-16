@@ -1,18 +1,33 @@
 #include <AFMotor.h>
-int stickX; // motor 1 joystick
-int stickY; // motor 2 joystick
-int vecX; // normalized motor rate
-int vecY; // normalized motor rate
+// CONSTANTS
+static const int JOY_CENTER = 511;  // Center val for joystick
+static const int JOY_MIN = 0; // Min val from joystick read
+static const int JOY_MAX = 0; // Max val from joystick read
+static const int MOTOR_MIN = 0; // Min val to motor control
+static const int MOTOR_MAX = 255; // Max val to motor control
+static const int NULL_MIN = 506; // Low end stick null zone
+static const int NULL_MAX = 516; // High end stick null zone
 
-/*
-The null zone gives a little more zero for stop.
-*/
-int nullMin = 490;
-int nullMax = 510;
+// DIRECTION CONSTANTS
+// We do this so we don't risk a typo later
+static const String AHEAD = "AHEAD";
+static const String BACK = "BACK";
+static const String PORT = "PORT";
+static const String STARBOARD = "STARBOARD";
+static const String AHEAD_PORT = "AHEAD_PORT";
+static const String BACK_PORT = "BACK_PORT";
+static const String AHEAD_STARBOARD = "AHEAD_STARBOARD";
+static const String BACK_STARBOARD = "BACK_STARBOARD";
+static const String STOP = "STOP";
 
-/* 
-Software definitions for both motors so we can control them
-*/
+// VARIABLES
+int stickX; // joystick x val
+int stickY; // joystick y val
+int vecX; // translated x val to motors
+int vecY; // translated y val to motors
+String dir; // direction command
+
+// MOTOR DEFINITIONS
 AF_DCMotor motor1(1); 
 AF_DCMotor motor2(2);
 
@@ -36,121 +51,143 @@ loop() runs forever once the Arduino has started. Consider this the
 void loop() {
   
     // Get stickX/stickY joystick values
-    stickX = analogRead(A0);
-    stickY = analogRead(A1);
+    stickX = nullify(analogRead(A0));
+    stickY = nullify(analogRead(A1));
+    dir = resolveDirection(stickX, stickY);
 
-    // Turn raw stick input into vectors for the motors
-    vecX = normalize(stickX);
-    vecY = normalize(stickY);
-
-    // Steering instructions
-    if (vecX == 0 && vecY == 0) {
-        stop();  
-    } else if (vecX == 0) {
-        if (vecY >= 128 ) {
-            forward();
-        } else {
-            reverse();
-        }
-    } else {
-        turn();
+    switch (dir) {
+        case STOP:
+            stop();
+            break;
+        case AHEAD:
+            ahead();
+            break;
+        case BACK:
+            back();
+            break;
+        case PORT:
+            port();
+            break;
+        case STARBOARD:
+            starboard();
+            break;
+        case AHEAD_PORT:
+            aheadPort();
+            break;
+        case AHEAD_STARBOARD:
+            aheadStarboard();
+            break;
+        case BACK_PORT:
+            backPort();
+            break;
+        case BACK_STARBOARD:
+            backStarboard();
+            break;
+        default:
+            stop();
     }
-    
-    // Print the data from the device
-    Serial.print(stickX);
-    Serial.print(':');
-    Serial.print(stickY);
-    Serial.print("/");
-    Serial.print(vecX);
-    Serial.print(':');
-    Serial.print(vecY);
-    Serial.print("\n");
+
 }
 
-int normalize(int stick) {
-    /*
-    The stick has ranges 0-1023
-    
-       1023
-        |
-    0-------1023
-        |
-        0
-
-    But we need to consider all back as full power, and all left/right as full power. So like:
-
-         255
-          |
-    255---0---255
-          |
-         255
-
-    */
-
-    if (stick >= nullMin && stick <= nullMax) {
-        return 0;
-    } else if (stick < 512) {
-        return map(1023 - stick, 0, 1023, 0, 255);
-    } else {
-        return map(stick, 512, 1023, 0, 255);
+int nullify(int stickVal) {
+    if (stickVal >= NULL_MIN && stickVal <= NULL_MAX) {
+        return JOY_CENTER; 
     }
 }
 
-/*
-Helper functions for managing the motors
-*/
+String resolveDirection(int x, y) {
+    
+    // STOP
+    if (x == JOY_CENTER && y == JOY_CENTER) {
+        return STOP;
+    }
 
-void stop() {
-    motor1.setSpeed(0);
-    motor1.setSpeed(0);
-    motor1.run(FORWARD);
-    motor2.run(FORWARD);
+    // AHEAD
+    if (x == JOY_CENTER && y > JOY_CENTER) {
+        return AHEAD;
+    }
+
+    // BACK
+    if (x == JOY_CENTER && y < JOY_CENTER) {
+        return BACK;
+    }
+
+    // PORT
+    if (x < JOY_CENTER && y == JOY_CENTER) {
+        return PORT;
+    }
+
+    // STARBOARD
+    if (x > JOY_CENTER && y == JOY_CENTER) {
+        return STARBOARD;
+    }
+
+    // AHEAD_PORT
+    if (x < JOY_CENTER && y > JOY_CENTER) {
+        return AHEAD_PORT; 
+    }
+
+    // BACK_PORT
+    if (x < JOY_CENTER && y < JOY_CENTER) {
+        return BACK_PORT; 
+    }
+
+    // AHEAD_STARBOARD
+    if (x > JOY_CENTER && y > JOY_CENTER) {
+        return AHEAD_STARBOARD; 
+    }
+
+    // BACK_STARBOARD
+    if (x > JOY_CENTER && y < JOY_CENTER) {
+        return BACK_STARBOARD; 
+    }
+
+    return STOP;
 }
 
-
-void forward() {
+void ahead() {
+    vecX = 0;
+    vecY = map(stickY, JOY_MIN, JOY_MAX, MOTOR_MIN, MOTOR_MAX);
     motor1.setSpeed(vecY);
     motor2.setSpeed(vecY);
     motor1.run(FORWARD);
-    motor2.run(FORWARD);
+    motor1.run(FORWARD);
 }
 
-void reverse() {
+void back() {
+    vecX = 0;
+    vecY = map(stickY, JOY_MIN, JOY_MAX, MOTOR_MIN, MOTOR_MAX);
     motor1.setSpeed(vecY);
     motor2.setSpeed(vecY);
     motor1.run(BACKWARD);
-    motor2.run(BACKWARD);
+    motor1.run(BACKWARD);
 }
 
-void turn() {
-    /*
-    Basically, a turn is a reversal of one engine, and then turning that engine at X rate
-    */
+void port() {
+    vecX = map(stickX, JOY_MIN, JOY_MAX, MOTOR_MIN, MOTOR_MAX);
+    vecY = 0;
+    motor1.setSpeed(vecY);
+    motor2.setSpeed(vecX);
+    motor1.run(FORWARD);
+    motor2.run(FORWARD);
+}
 
-    // Turning with no forward thrust
-    if (vecY == 0) {
-        motor1.setSpeed(vecX);
-        motor2.setSpeed(vecX);
-        if (stickX > 511) {
-            motor1.run(FORWARD);
-            motor2.run(BACKWARD);
-        } else {
-            motor1.run(BACKWARD);
-            motor2.run(FORWARD);
-        }
-    } else {
-        // Turning starboard with Y power
-        if (stickX > 511) {
-            motor1.setSpeed(vecY);
-            motor2.setSpeed(vecY - vecX);
-            motor1.run(FORWARD);
-            motor2.run(FORWARD);
-        // Turning port with Y power
-        } else {
-            motor1.setSpeed(vecY - vecX);
-            motor2.setSpeed(vecY);
-            motor1.run(FORWARD);
-            motor2.run(FORWARD);
-        }
-    }
+void starboard() {
+
+}
+
+void aheadPort() {
+
+}
+
+void aheadStarboard() {
+
+}
+
+void backPort() {
+
+}
+
+void backStarboard() {
+
 }
