@@ -1,243 +1,102 @@
 #include <AFMotor.h>
-// CONSTANTS
-static const int JOY_CENTER = 511;  // Center val for joystick
-static const int JOY_MIN = 0; // Min val from joystick read
-static const int JOY_MAX = 0; // Max val from joystick read
-static const int MOTOR_MIN = 0; // Min val to motor control
-static const int MOTOR_MAX = 255; // Max val to motor control
+/* 
+-------------------------------
+The MIT License (MIT)
+Copyright (c) 2014 Blue Robotics Inc.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+-------------------------------*/
 
+// Joystick Settings
+int JS_CENTER_X; // Analog reading at center, 0-1023
+int JS_CENTER_Y; // Analog reading at center, 0-1023
+static const int JS_RANGE_X = 128; // Analog range, 0-1023
+static const int JS_RANGE_Y = 128; // Set to 128 for Parallax joystick
+static const int JS_DIR_X = 1; // +1 or -1
+static const int JS_DIR_Y = 1;
 
-// DIRECTION CONSTANTS
-// We do this so we don't risk a typo later
-static const int AHEAD = 1;
-static const int BACK = 2;
-static const int PORT = 3; 
-static const int STARBOARD = 4; 
-static const int AHEAD_PORT = 5; 
-static const int BACK_PORT = 6; 
-static const int AHEAD_STARBOARD = 7; 
-static const int BACK_STARBOARD = 8; 
-static const int STOP = 9; 
+// Thruster Settings
+static const int MAX_FWD_REV_THROTTLE = 255; // Value between 0-255
+static const int MAX_TURN_THROTTLE = 255; // Value between 0-255
 
-// VARIABLES
-int stickX; // joystick x val
-int stickY; // joystick y val
-int vecX; // translated x val to motors
-int vecY; // translated y val to motors
-int dir; // direction command
-int nullX; // Low end stick null zone
-int nullY; // High end stick null zone
+// Arduino Pins
+static const byte JS_ADC_0 = A0;
+static const byte JS_ADC_1 = A1;
 
 // MOTOR DEFINITIONS
 AF_DCMotor motor1(1); 
 AF_DCMotor motor2(2);
 
-/*
-setup() runs when the Arduino turns on. We put any code needed to
-initialize the program here.
-*/
+
 void setup() {
-    // Set up joystick pins for input
+    // Set up serial port to print inputs and outputs
+    Serial.begin(9600);
     pinMode(A0, INPUT);
     pinMode(A1, INPUT);
-    nullX = analogRead(A0);
-    nullY = analogRead(A1);
-    
-    // Begin serial printing for the run
-    Serial.begin(9600);
+
+    // Get initial positions for center of JS
+    JS_CENTER_X = analogRead(A0);
+    JS_CENTER_Y = analogRead(A1);
+
+    delay(1000); 
 }
 
-/*
-loop() runs forever once the Arduino has started. Consider this the
-"life" of your device.
-*/
 void loop() {
-  
-    // Get stickX/stickY joystick values
-    stickX = analogRead(A0);
-    stickY = analogRead(A1);
-    
-    // Turn those into a direction
-    dir = resolveDirection(stickX, stickY);
+    // Read the joysticks and use the Arduino "map" function to map the raw values
+    // to the desired output commands.
+   
+    int jsX = analogRead(JS_ADC_0);
+    int jsY = analogRead(JS_ADC_1);
 
+    int forwardCommand    = map(analogRead(JS_ADC_0), // Read raw joystick value
+                              JS_CENTER_Y-JS_DIR_Y*JS_RANGE_Y, // Joystick low value
+                              JS_CENTER_Y+JS_DIR_Y*JS_RANGE_Y, // Joystick high value
+                              -MAX_FWD_REV_THROTTLE, // Command low value
+                              MAX_FWD_REV_THROTTLE); // Command high value
 
-    // Serial print the results;
-    Serial.print(dir);
-    Serial.print("::");
-    Serial.print(stickX);
+    int turnCommand       = map(analogRead(JS_ADC_1), // Read raw joystick value
+                              JS_CENTER_X-JS_DIR_X*JS_RANGE_X, // Joystick low value
+                              JS_CENTER_X+JS_DIR_X*JS_RANGE_X, // Joystick high value
+                              -MAX_TURN_THROTTLE, // Command low value
+                              MAX_TURN_THROTTLE); // Command high value
+
+    // Set motor direction
+    if (forwardCommand < 0) {
+        motor1.run(BACKWARD);
+        motor2.run(BACKWARD);
+    } else {
+        motor1.run(FORWARD);
+        motor2.run(FORWARD);
+    }
+
+    // Combine the "stopped" command with forward, turn, and vertical and send 
+    // to the Thrusters.
+    motor1.setSpeed(forwardCommand+turnCommand);
+    motor2.setSpeed(forwardCommand-turnCommand);
+
+    // Output via serial
+    Serial.print("X: ");
+    Serial.print(jsX);
+    Serial.print("Y: ");
+    Serial.print(jsY);
     Serial.print("/");
-    Serial.print(stickY);
-    Serial.print("-");
-    Serial.print(dir);
-    Serial.print("\n");
+    Serial.print("Fwd: "); Serial.print(forwardCommand);
+    Serial.print("Turn: "); Serial.print(turnCommand);
+    Serial.println("");
 
-    // Control structure for directions
-    switch (dir) {
-        case STOP:
-            stop();
-            break;
-        case AHEAD:
-            ahead();
-            break;
-        case BACK:
-            back();
-            break;
-        case PORT:
-            port();
-            break;
-        case STARBOARD:
-            starboard();
-            break;
-        case AHEAD_PORT:
-            aheadPort();
-            break;
-        case AHEAD_STARBOARD:
-            aheadStarboard();
-            break;
-        case BACK_PORT:
-            backPort();
-            break;
-        case BACK_STARBOARD:
-            backStarboard();
-            break;
-        default:
-            stop();
-    }
-
-}
-
-int resolveDirection(int x, int y) {
-    
-    // STOP
-    if (x == nullX && y == nullY) {
-        return STOP;
-    }
-
-    // AHEAD
-    if (x == nullX && y > nullY) {
-        return AHEAD;
-    }
-
-    // BACK
-    if (x == nullX && y < nullY) {
-        return BACK;
-    }
-
-    // PORT
-    if (x < nullX && y == nullY) {
-        return PORT;
-    }
-
-    // STARBOARD
-    if (x > nullX && y == nullY) {
-        return STARBOARD;
-    }
-
-    // AHEAD_PORT
-    if (x < JOY_CENTER && y > JOY_CENTER) {
-        return AHEAD_PORT; 
-    }
-
-    // BACK_PORT
-    if (x < nullX && y < nullY) {
-        return BACK_PORT; 
-    }
-
-    // AHEAD_STARBOARD
-    if (x > nullX && y > nullY) {
-        return AHEAD_STARBOARD; 
-    }
-
-    // BACK_STARBOARD
-    if (x > nullX && y < nullY) {
-        return BACK_STARBOARD; 
-    }
-
-    return STOP;
-}
-
-void stop() {
-    vecX = 0;
-    vecY = 0;
-    motor1.setSpeed(vecY);
-    motor2.setSpeed(vecY);
-    motor1.run(FORWARD);
-    motor2.run(FORWARD);
-}
-
-void ahead() {
-    vecX = 0;
-    vecY = mapStickVal(stickY);
-    motor1.setSpeed(vecY);
-    motor2.setSpeed(vecY);
-    motor1.run(FORWARD);
-    motor1.run(FORWARD);
-}
-
-void back() {
-    vecX = 0;
-    vecY = mapStickVal(JOY_MAX - stickY);
-    motor1.setSpeed(vecY);
-    motor2.setSpeed(vecY);
-    motor1.run(BACKWARD);
-    motor1.run(BACKWARD);
-}
-
-void port() {
-    vecX = mapStickVal(JOY_MAX - stickX);
-    vecY = 0;
-    motor1.setSpeed(vecY);
-    motor2.setSpeed(vecX);
-    motor1.run(FORWARD);
-    motor2.run(FORWARD);
-}
-
-void starboard() {
-    vecX = mapStickVal(stickX);
-    vecY = 0;
-    motor1.setSpeed(vecX);
-    motor2.setSpeed(vecY);
-    motor1.run(FORWARD);
-    motor2.run(FORWARD);
-}
-
-void aheadPort() {
-    vecX = mapStickVal(JOY_MAX - stickX);
-    vecY = mapStickVal(stickY);
-    motor1.setSpeed(vecY - vecX);
-    motor1.setSpeed(vecX);
-    motor1.run(FORWARD);
-    motor1.run(FORWARD);
-}
-
-void aheadStarboard() {
-    vecX = mapStickVal(stickX);
-    vecY = mapStickVal(stickY);
-    motor1.setSpeed(vecX);
-    motor2.setSpeed(vecY - vecX);
-    motor1.run(FORWARD);
-    motor2.run(FORWARD);
-
-}
-
-void backPort() {
-    vecX = mapStickVal(JOY_MAX - stickX);
-    vecY = mapStickVal(JOY_MAX - stickY);
-    motor1.setSpeed(vecY - vecX);
-    motor2.setSpeed(vecX);
-    motor1.run(BACKWARD);
-    motor2.run(BACKWARD);
-}
-
-void backStarboard() {
-    vecX = mapStickVal(stickX);
-    vecY = mapStickVal(JOY_MAX - stickY);
-    motor1.setSpeed(vecX);
-    motor2.setSpeed(vecY - vecX);
-    motor1.run(BACKWARD);
-    motor2.run(BACKWARD);
-}
-
-int mapStickVal(int stickVal) {
-    return map(stickVal, JOY_MIN, JOY_MAX, MOTOR_MIN, MOTOR_MAX);
+    // Delay 1/10th of a second. No need to update at super fast rates.
+    delay(100);
 }
