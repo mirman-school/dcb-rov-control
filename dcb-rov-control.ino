@@ -1,8 +1,7 @@
 #include <AFMotor.h>
 // CONSTANTS
-const int JOY_CENTER = 511;  // Center val for joystick
 const int JOY_MIN = 0; // Min val from joystick read
-const int JOY_MAX = 0; // Max val from joystick read
+const int JOY_MAX = 1023; // Max val from joystick read
 const int MOTOR_MIN = 0; // Min val to motor control
 const int MOTOR_MAX = 255; // Max val to motor control
 
@@ -168,7 +167,7 @@ int resolveDirection(int x, int y) {
     }
 
     // AHEAD_PORT
-    if (x < JOY_CENTER && y > JOY_CENTER) {
+    if (x < nullX && y > nullY) {
         return AHEAD_PORT; 
     }
 
@@ -193,11 +192,11 @@ int resolveDirection(int x, int y) {
 int mapStickVal(int stickVal, int nullVal) {
   
     if (stickVal == nullVal) {
-      return 0;
+      return MOTOR_MIN;
     }
     
     if (stickVal <= nullVal) {
-      return map(1023 - stickVal, 0, 1023, 0, 255);
+      return map(JOY_MAX - stickVal, JOY_MIN, JOY_MAX, MOTOR_MIN, MOTOR_MAX);
     }
-    return map(stickVal, 0, 1023, 0, 255);
+    return map(stickVal, JOY_MIN, JOY_MAX, MOTOR_MIN, MOTOR_MAX);
 }
