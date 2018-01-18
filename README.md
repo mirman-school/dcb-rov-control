@@ -3,7 +3,7 @@ This repository contains the base control code for Mirman's Remotely Operated Ve
 
 ## Dependencies
 * [Arduino IDE](https://arduino.cc)
-* [Adafruit MotorShield](https://github.com/adafruit/Adafruit_Motor_Shield_V2_Library)
+* [Adafruit MotorShield](https://github.com/adafruit/Adafruit-Motor-Shield-library)
 
 ## Setup
 1. Download the Adafruit Motorshield Dependency listed above. From the green "Clone/Download" button, choose "Download ZIP".
