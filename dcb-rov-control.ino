@@ -40,6 +40,8 @@ void setup() {
     Serial.begin(9600);
     pinMode(A0, INPUT);
     pinMode(A1, INPUT);
+    nullX = analogRead(A0);
+    nullY = analogRead(A1);
 }
 /*
 loop() runs forever once the Arduino has started. Consider this the
