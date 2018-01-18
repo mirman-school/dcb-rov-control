@@ -1,4 +1,5 @@
 #include <AFMotor.h>
+
 // CONSTANTS
 const int JOY_MIN = 0; // Min val from joystick read
 const int JOY_MAX = 1023; // Max val from joystick read
@@ -33,20 +34,12 @@ int speed2; // Motor 2 speed
 AF_DCMotor motor1(1); 
 AF_DCMotor motor2(2);
 
-/*
-setup() runs when the Arduino turns on. We put any code needed to
-initialize the program here.
-*/
+
 void setup() {
-    // Set up joystick pins for input
+    // Set up serial port to print inputs and outputs
+    Serial.begin(9600);
     pinMode(A0, INPUT);
     pinMode(A1, INPUT);
-    nullX = analogRead(A0);
-    nullY = analogRead(A1);
-    
-    // Begin serial printing for the run
-    Serial.begin(9600);
-}
 
 /*
 loop() runs forever once the Arduino has started. Consider this the
@@ -137,6 +130,7 @@ void loop() {
     }
     
 
+    delay(1000); 
 }
 
 int resolveDirection(int x, int y) {
@@ -185,12 +179,13 @@ int resolveDirection(int x, int y) {
     if (x > nullX && y < nullY) {
         return BACK_STARBOARD; 
     }
-
-    return STOP;
-}
+    
+    // Combine the "stopped" command with forward, turn, and vertical and send 
+    // to the Thrusters.
+    motor1.setSpeed(forwardCommand+turnCommand);
+    motor2.setSpeed(forwardCommand-turnCommand);
 
 int mapStickVal(int stickVal, int nullVal) {
-  
     if (stickVal == nullVal) {
       return MOTOR_MIN;
     }
