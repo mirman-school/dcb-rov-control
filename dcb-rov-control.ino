@@ -40,7 +40,7 @@ void setup() {
     Serial.begin(9600);
     pinMode(A0, INPUT);
     pinMode(A1, INPUT);
-
+}
 /*
 loop() runs forever once the Arduino has started. Consider this the
 "life" of your device.
@@ -180,10 +180,7 @@ int resolveDirection(int x, int y) {
         return BACK_STARBOARD; 
     }
     
-    // Combine the "stopped" command with forward, turn, and vertical and send 
-    // to the Thrusters.
-    motor1.setSpeed(forwardCommand+turnCommand);
-    motor2.setSpeed(forwardCommand-turnCommand);
+}
 
 int mapStickVal(int stickVal, int nullVal) {
     if (stickVal == nullVal) {
