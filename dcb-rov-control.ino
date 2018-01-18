@@ -1,23 +1,23 @@
 #include <AFMotor.h>
 // CONSTANTS
-static const int JOY_CENTER = 511;  // Center val for joystick
-static const int JOY_MIN = 0; // Min val from joystick read
-static const int JOY_MAX = 0; // Max val from joystick read
-static const int MOTOR_MIN = 0; // Min val to motor control
-static const int MOTOR_MAX = 255; // Max val to motor control
+const int JOY_CENTER = 511;  // Center val for joystick
+const int JOY_MIN = 0; // Min val from joystick read
+const int JOY_MAX = 0; // Max val from joystick read
+const int MOTOR_MIN = 0; // Min val to motor control
+const int MOTOR_MAX = 255; // Max val to motor control
 
 
 // DIRECTION CONSTANTS
 // We do this so we don't risk a typo later
-static const int AHEAD = 1;
-static const int BACK = 2;
-static const int PORT = 3; 
-static const int STARBOARD = 4; 
-static const int AHEAD_PORT = 5; 
-static const int BACK_PORT = 6; 
-static const int AHEAD_STARBOARD = 7; 
-static const int BACK_STARBOARD = 8; 
-static const int STOP = 9; 
+const int AHEAD = 1;
+const int BACK = 2;
+const int PORT = 3; 
+const int STARBOARD = 4; 
+const int AHEAD_PORT = 5; 
+const int BACK_PORT = 6; 
+const int AHEAD_STARBOARD = 7; 
+const int BACK_STARBOARD = 8; 
+const int STOP = 9; 
 
 // VARIABLES
 int stickX; // joystick x val
@@ -27,6 +27,8 @@ int vecY; // translated y val to motors
 int dir; // direction command
 int nullX; // Low end stick null zone
 int nullY; // High end stick null zone
+int speed1; // Motor 1 speed
+int speed2; // Motor 2 speed
 
 // MOTOR DEFINITIONS
 AF_DCMotor motor1(1); 
@@ -59,7 +61,51 @@ void loop() {
     
     // Turn those into a direction
     dir = resolveDirection(stickX, stickY);
+    vecX = mapStickVal(stickX, nullX);
+    vecY = mapStickVal(stickY, nullY);
 
+    // Control structure for directions
+    switch (dir) {
+        case STOP:
+            speed1 = vecY;
+            speed2 = vecY;
+            break;
+        case AHEAD:
+            speed1 = vecY;
+            speed2 = vecY;
+            break;
+        case BACK:
+            speed1 = vecY;
+            speed2 = vecY;
+            break;
+        case PORT:
+            speed1 = vecY;
+            speed2 = vecX;
+            break;
+        case STARBOARD:
+            speed1 = vecX;
+            speed2 = vecY;
+            break;
+        case AHEAD_PORT:
+            speed1 = vecY = vecX;
+            speed2 = vecX;
+            break;
+        case AHEAD_STARBOARD:
+            speed1 = vecX;
+            speed2 = vecY - vecX;
+            break;
+        case BACK_PORT:
+            speed1 = vecY - vecX;
+            speed2 = vecX;
+            break;
+        case BACK_STARBOARD:
+            speed1 = vecX;
+            speed2 = vecY - vecX;
+            break;
+        default:
+            speed1 = 0;
+            speed2 = 0;
+    }
 
     // Serial print the results;
     Serial.print(dir);
@@ -67,42 +113,30 @@ void loop() {
     Serial.print(stickX);
     Serial.print("/");
     Serial.print(stickY);
-    Serial.print("-");
+    Serial.print("::");
+    Serial.print(vecX);
+    Serial.print("/");
+    Serial.print(vecY);
+    Serial.print("::");
+    Serial.print(speed1);
+    Serial.print("/");
+    Serial.print(speed2);
+    Serial.print("::");
     Serial.print(dir);
-    Serial.print("\n");
+    Serial.println("");
 
-    // Control structure for directions
-    switch (dir) {
-        case STOP:
-            stop();
-            break;
-        case AHEAD:
-            ahead();
-            break;
-        case BACK:
-            back();
-            break;
-        case PORT:
-            port();
-            break;
-        case STARBOARD:
-            starboard();
-            break;
-        case AHEAD_PORT:
-            aheadPort();
-            break;
-        case AHEAD_STARBOARD:
-            aheadStarboard();
-            break;
-        case BACK_PORT:
-            backPort();
-            break;
-        case BACK_STARBOARD:
-            backStarboard();
-            break;
-        default:
-            stop();
+    // Do the actual motor update
+    motor1.setSpeed(speed1);
+    motor2.setSpeed(speed2);
+
+    if (stickX < nullX) {
+      motor1.run(BACKWARD);
+      motor2.run(BACKWARD);
+    } else {
+      motor1.run(FORWARD);
+      motor2.run(FORWARD);
     }
+    
 
 }
 
@@ -156,88 +190,14 @@ int resolveDirection(int x, int y) {
     return STOP;
 }
 
-void stop() {
-    vecX = 0;
-    vecY = 0;
-    motor1.setSpeed(vecY);
-    motor2.setSpeed(vecY);
-    motor1.run(FORWARD);
-    motor2.run(FORWARD);
-}
-
-void ahead() {
-    vecX = 0;
-    vecY = mapStickVal(stickY);
-    motor1.setSpeed(vecY);
-    motor2.setSpeed(vecY);
-    motor1.run(FORWARD);
-    motor1.run(FORWARD);
-}
-
-void back() {
-    vecX = 0;
-    vecY = mapStickVal(JOY_MAX - stickY);
-    motor1.setSpeed(vecY);
-    motor2.setSpeed(vecY);
-    motor1.run(BACKWARD);
-    motor1.run(BACKWARD);
-}
-
-void port() {
-    vecX = mapStickVal(JOY_MAX - stickX);
-    vecY = 0;
-    motor1.setSpeed(vecY);
-    motor2.setSpeed(vecX);
-    motor1.run(FORWARD);
-    motor2.run(FORWARD);
-}
-
-void starboard() {
-    vecX = mapStickVal(stickX);
-    vecY = 0;
-    motor1.setSpeed(vecX);
-    motor2.setSpeed(vecY);
-    motor1.run(FORWARD);
-    motor2.run(FORWARD);
-}
-
-void aheadPort() {
-    vecX = mapStickVal(JOY_MAX - stickX);
-    vecY = mapStickVal(stickY);
-    motor1.setSpeed(vecY - vecX);
-    motor1.setSpeed(vecX);
-    motor1.run(FORWARD);
-    motor1.run(FORWARD);
-}
-
-void aheadStarboard() {
-    vecX = mapStickVal(stickX);
-    vecY = mapStickVal(stickY);
-    motor1.setSpeed(vecX);
-    motor2.setSpeed(vecY - vecX);
-    motor1.run(FORWARD);
-    motor2.run(FORWARD);
-
-}
-
-void backPort() {
-    vecX = mapStickVal(JOY_MAX - stickX);
-    vecY = mapStickVal(JOY_MAX - stickY);
-    motor1.setSpeed(vecY - vecX);
-    motor2.setSpeed(vecX);
-    motor1.run(BACKWARD);
-    motor2.run(BACKWARD);
-}
-
-void backStarboard() {
-    vecX = mapStickVal(stickX);
-    vecY = mapStickVal(JOY_MAX - stickY);
-    motor1.setSpeed(vecX);
-    motor2.setSpeed(vecY - vecX);
-    motor1.run(BACKWARD);
-    motor2.run(BACKWARD);
-}
-
-int mapStickVal(int stickVal) {
-    return map(stickVal, JOY_MIN, JOY_MAX, MOTOR_MIN, MOTOR_MAX);
+int mapStickVal(int stickVal, int nullVal) {
+  
+    if (stickVal == nullVal) {
+      return 0;
+    }
+    
+    if (stickVal <= nullVal) {
+      return map(1023 - stickVal, 0, 1023, 0, 255);
+    }
+    return map(stickVal, 0, 1023, 0, 255);
 }
