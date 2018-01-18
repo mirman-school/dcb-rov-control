@@ -100,8 +100,6 @@ void loop() {
     }
 
     // Serial print the results;
-    Serial.print(dir);
-    Serial.print("::");
     Serial.print(stickX);
     Serial.print("/");
     Serial.print(stickY);
