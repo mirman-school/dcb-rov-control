@@ -9,16 +9,19 @@ int MOTOR_MAX = 255;
 // GLOBAL VARIABLES
 int x; // X Axis reading
 int y; // Y Axis reading
+int z; // Z Axis reading
 int rate1; // motor 1 speed
 int rate2; // motor 2 speed
 int rateMod1; // motor 1 speed modifier
 int rateMod2; // motor 2 speed modifier
 int nullX; // null reading for x axis
 int nullY; // null reading for y axis
+int nullZ; // null reading for z axis
 
 // Setup Motors
 AF_DCMotor motor1(1);
 AF_DCMotor motor2(2);
+AF_DCMotor motor3(3);
 
 
 void setup() {
@@ -28,6 +31,7 @@ void setup() {
   // Calibrate Joystick
   nullX = analogRead(A0);
   nullY = analogRead(A1);
+  nullZ = analogRead(A2);
 }
 
 void loop() {
@@ -35,6 +39,7 @@ void loop() {
   // Get current joystick values
   x = analogRead(A0);
   y = analogRead(A1);
+  z = analogRead(A2);
 
   // Conditional to set motor speeds based on joystick values
   if(x < nullX || y < nullY || y > nullY){
