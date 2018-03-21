@@ -70,6 +70,17 @@ void loop() {
     motor2.run(RELEASE);
   }
 
+  // Z-axis control
+  if(z > nullZ) {
+    motor3.run(FORWARD);
+  } else if (z < nullZ) {
+    motor3.run(BACKWARD);
+  } else {
+    motor3.run(RELEASE);
+  }
+
+
+
   Serial.print(x);
   Serial.print('-');
   Serial.println(y);
