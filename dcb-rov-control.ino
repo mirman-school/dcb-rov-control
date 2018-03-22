@@ -73,22 +73,23 @@ void loop() {
   // Z-axis control
   if(z > nullZ) {
     motor3.run(FORWARD);
+    motor3.setSpeed(map(z, nullZ, JOY_MAX, MOTOR_MIN, MOTOR_MAX));
   } else if (z < nullZ) {
     motor3.run(BACKWARD);
+    motor3.setSpeed(map(z,JOY_MIN,nullZ,MOTOR_MAX,MOTOR_MIN));
   } else {
     motor3.run(RELEASE);
+    motor3.setSpeed(MOTOR_MIN);
   }
 
 
 
+  Serial.print("x: ");
   Serial.print(x);
-  Serial.print('-');
-  Serial.println(y);
-  Serial.print(rate1);
-  Serial.print('/');
-  Serial.print(rate2);
-  Serial.print('_');
-  Serial.print(rateMod1);
-  Serial.print('_');
-  Serial.println(rateMod2);
+  Serial.print(", ");
+  Serial.print("y: ");
+  Serial.print(y);
+  Serial.print(", ");
+  Serial.print("z: ");
+  Serial.println(z);
 }
