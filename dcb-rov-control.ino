@@ -31,7 +31,7 @@ void setup() {
   // Calibrate Joystick
   nullX = analogRead(A0);
   nullY = analogRead(A1);
-  nullZ = analogRead(A2);
+  nullZ = analogRead(A3);
 }
 
 void loop() {
@@ -39,7 +39,7 @@ void loop() {
   // Get current joystick values
   x = analogRead(A0);
   y = analogRead(A1);
-  z = analogRead(A2);
+  z = analogRead(A3);
 
   // Conditional to set motor speeds based on joystick values
   if(x < nullX || y < nullY || y > nullY){
