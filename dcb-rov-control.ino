@@ -72,8 +72,10 @@ void loop() {
 
   // Z-axis control
   if(z > nullZ) {
+    motor3.setSpeed(map(z, nullZ, JOY_MAX, MOTOR_MIN, MOTOR_MAX));
     motor3.run(FORWARD);
   } else if (z < nullZ) {
+    motor3.setSpeed(map(z, JOY_MIN, JOY_MAX, MOTOR_MAX, MOTOR_MIN));
     motor3.run(BACKWARD);
   } else {
     motor3.run(RELEASE);
