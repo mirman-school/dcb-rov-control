@@ -83,7 +83,9 @@ void loop() {
 
   Serial.print(x);
   Serial.print('-');
-  Serial.println(y);
+  Serial.print(y);
+  Serial.print('-');
+  Serial.print(z);
   Serial.print(rate1);
   Serial.print('/');
   Serial.print(rate2);
