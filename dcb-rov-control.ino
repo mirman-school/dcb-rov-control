@@ -45,9 +45,10 @@ void setup() {
   Serial.begin(9600);
   pinMode(A0, INPUT);
   pinMode(A1, INPUT);
+  pinMode(A3, INPUT);
   nullX = analogRead(A1);
   nullY = analogRead(A0);
-  nullZ = analogRead(A2);
+  nullZ = analogRead(A3);
 }
 /*
   loop() runs forever once the Arduino has started. Consider this the
@@ -58,7 +59,7 @@ void loop() {
   // Get stickX/stickY joystick values
   stickX = analogRead(A1);
   stickY = analogRead(A0);
-  stickZ = analogRead(A2);
+  stickZ = analogRead(A3);
 
   // Turn those into a direction
   dir = resolveDirection(stickX, stickY);
@@ -107,9 +108,9 @@ void loop() {
     default:
       speed1 = 0;
       speed2 = 0;
-
-      speed3 = vecZ;
   }
+
+  speed3 = vecZ;
 
   // Serial print the results;
   Serial.print(stickX);
