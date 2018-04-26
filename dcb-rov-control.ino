@@ -148,8 +148,10 @@ void loop() {
 
     if (stickZ < nullZ) {
       motor3.run(BACKWARD);
-    } else {
+    } else if (stickZ > nullZ)  {
       motor3.run(FORWARD);  
+    } else {
+      motor3.run(RELEASE);  
     }
     
 
