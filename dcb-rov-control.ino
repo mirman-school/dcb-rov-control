@@ -107,6 +107,8 @@ void loop() {
         default:
             speed1 = 0;
             speed2 = 0;
+
+      speed3 = vecZ;
     }
 
     // Serial print the results;
@@ -125,6 +127,8 @@ void loop() {
     Serial.print(speed1);
     Serial.print("/");
     Serial.print(speed2);
+    Serial.print("/");
+    Serial.print(speed3);
     Serial.print("::");
     Serial.print(dir);
     Serial.println("");
@@ -132,7 +136,7 @@ void loop() {
     // Do the actual motor update
     motor1.setSpeed(speed1);
     motor2.setSpeed(speed2);
-    motor3.setSpeed(vecZ);
+    motor3.setSpeed(speed3);
 
     if (stickX < nullX) {
       motor1.run(BACKWARD);
