@@ -22,17 +22,22 @@ const int STOP = 9;
 // VARIABLES
 int stickX; // joystick x val
 int stickY; // joystick y val
+int stickZ; // joystick z val
 int vecX; // translated x val to motors
 int vecY; // translated y val to motors
+int vecZ; // translated z val to motors
 int dir; // direction command
-int nullX; // Low end stick null zone
-int nullY; // High end stick null zone
+int nullX; // x axis null zone
+int nullY; // y axis stick null zone
+int nullZ; // z axis
 int speed1; // Motor 1 speed
 int speed2; // Motor 2 speed
+int speed3; // Motor 3 speed
 
 // MOTOR DEFINITIONS
 AF_DCMotor motor1(1); 
 AF_DCMotor motor2(2);
+AF_DCMotor motor3(3);
 
 
 void setup() {
@@ -40,6 +45,9 @@ void setup() {
     Serial.begin(9600);
     pinMode(A0, INPUT);
     pinMode(A1, INPUT);
+    nullX = analogRead(A1);
+    nullY = analogRead(A0);
+    nullZ = analogRead(A2);
 }
 /*
 loop() runs forever once the Arduino has started. Consider this the
@@ -48,15 +56,17 @@ loop() runs forever once the Arduino has started. Consider this the
 void loop() {
   
     // Get stickX/stickY joystick values
-    stickX = analogRead(A0);
-    stickY = analogRead(A1);
+    stickX = analogRead(A1);
+    stickY = analogRead(A0);
+    stickZ = analogRead(A2);
     
     // Turn those into a direction
     dir = resolveDirection(stickX, stickY);
     vecX = mapStickVal(stickX, nullX);
     vecY = mapStickVal(stickY, nullY);
+    vecZ = mapStickVal(stickZ, nullZ);
 
-    // Control structure for directions
+    // Control structure for x/y directions
     switch (dir) {
         case STOP:
             speed1 = vecY;
@@ -79,7 +89,7 @@ void loop() {
             speed2 = vecY;
             break;
         case AHEAD_PORT:
-            speed1 = vecY = vecX;
+            speed1 = vecY - vecX;
             speed2 = vecX;
             break;
         case AHEAD_STARBOARD:
@@ -103,10 +113,14 @@ void loop() {
     Serial.print(stickX);
     Serial.print("/");
     Serial.print(stickY);
+    Serial.print("/");
+    Serial.print(stickZ);
     Serial.print("::");
     Serial.print(vecX);
     Serial.print("/");
     Serial.print(vecY);
+    Serial.print("/");
+    Serial.print(vecZ);
     Serial.print("::");
     Serial.print(speed1);
     Serial.print("/");
@@ -118,6 +132,7 @@ void loop() {
     // Do the actual motor update
     motor1.setSpeed(speed1);
     motor2.setSpeed(speed2);
+    motor3.setSpeed(vecZ);
 
     if (stickX < nullX) {
       motor1.run(BACKWARD);
@@ -126,9 +141,15 @@ void loop() {
       motor1.run(FORWARD);
       motor2.run(FORWARD);
     }
+
+    if (stickZ < nullZ) {
+      motor3.run(BACKWARD);
+    } else {
+      motor3.run(FORWARD);  
+    }
     
 
-    delay(1000); 
+    delay(500); 
 }
 
 int resolveDirection(int x, int y) {
