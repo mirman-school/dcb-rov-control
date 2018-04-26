@@ -46,9 +46,9 @@ void setup() {
   pinMode(A0, INPUT);
   pinMode(A1, INPUT);
   pinMode(A3, INPUT);
-  nullX = analogRead(A1);
-  nullY = analogRead(A0);
-  nullZ = analogRead(A3);
+  nullX = analogRead(A0);
+  nullY = analogRead(A1);
+  nullZ = analogRead(A2);
 }
 /*
   loop() runs forever once the Arduino has started. Consider this the
@@ -57,9 +57,9 @@ void setup() {
 void loop() {
 
   // Get stickX/stickY joystick values
-  stickX = analogRead(A1);
-  stickY = analogRead(A0);
-  stickZ = analogRead(A3);
+  stickX = analogRead(A0);
+  stickY = analogRead(A1);
+  stickZ = analogRead(A2);
 
   // Turn those into a direction
   dir = resolveDirection(stickX, stickY);
@@ -139,7 +139,7 @@ void loop() {
   motor2.setSpeed(speed2);
   motor3.setSpeed(speed3);
 
-  if (stickX < nullX) {
+  if (stickY < nullY) {
     motor1.run(BACKWARD);
     motor2.run(BACKWARD);
   } else {
